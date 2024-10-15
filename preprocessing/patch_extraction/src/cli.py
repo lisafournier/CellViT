@@ -12,6 +12,7 @@ import logging
 from copy import copy
 from pathlib import Path
 from typing import Any, List, Optional, Tuple
+import os 
 
 import yaml
 from pydantic import BaseModel, validator
@@ -627,11 +628,11 @@ class PreProcessingParser(ABCParser):
         for k, v in config_repr_str.items():
             config_repr[k] = v
         # store in log directory
-        with open(self.preprocessconfig.log_path / "config.yaml", "w") as yaml_file:
+        with open(os.path.join(self.preprocessconfig.log_path, "config.yaml"), "w") as yaml_file:
             yaml.dump(config_repr, yaml_file, sort_keys=False)
 
         self.logger.debug(
-            f"Stored config under: {str(self.preprocessconfig.log_path / 'config.yaml')}"
+            f"Stored config under: {str(os.path.join(self.preprocessconfig.log_path, 'config.yaml'))}"
         )
 
 

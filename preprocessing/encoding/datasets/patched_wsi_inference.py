@@ -27,7 +27,7 @@ class PatchedWSIInference(Dataset):
         transform: Callable,
     ) -> None:
         # set all configurations
-        assert isinstance(wsi_object, WSI), "Must be a WSI-object"
+        # assert isinstance(wsi_object, WSI), "Must be a WSI-object"
         assert (
             wsi_object.patched_slide_path is not None
         ), "Please provide a WSI that already has been patched into slices"
