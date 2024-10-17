@@ -16,8 +16,8 @@ from PIL import Image, ImageDraw
 from rasterio.mask import mask as rasterio_mask
 from shapely.geometry import Polygon
 
-from configs.python.config import COLOR_DEFINITIONS
-from preprocessing.patch_extraction.src.utils.masking import get_filtered_polygons
+from CellViT.configs.python.config import COLOR_DEFINITIONS
+from CellViT.preprocessing.patch_extraction.src.utils.masking import get_filtered_polygons
 
 
 

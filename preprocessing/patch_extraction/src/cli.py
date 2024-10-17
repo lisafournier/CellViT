@@ -17,9 +17,9 @@ import os
 import yaml
 from pydantic import BaseModel, validator
 
-from base_ml.base_cli import ABCParser
-from configs.python.config import ANNOTATION_EXT, LOGGING_EXT, WSI_EXT
-from utils.logger import Logger
+from CellViT.base_ml.base_cli import ABCParser
+from CellViT.configs.python.config import ANNOTATION_EXT, LOGGING_EXT, WSI_EXT
+from CellViT.utils.logger import Logger
 
 
 class PreProcessingYamlConfig(BaseModel):

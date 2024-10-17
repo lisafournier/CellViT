@@ -15,7 +15,7 @@ from datetime import timedelta
 from timeit import default_timer as timer
 from typing import Dict, List, Optional, Tuple, Union
 
-from utils.__init__ import logger
+from CellViT.utils.__init__ import logger
 
 
 # Helper timing functions

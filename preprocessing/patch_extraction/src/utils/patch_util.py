@@ -24,13 +24,13 @@ from shapely.affinity import translate
 from shapely.geometry import Polygon, shape
 from shapely.validation import make_valid
 
-from preprocessing.patch_extraction import logger
-from preprocessing.patch_extraction.src.utils.exceptions import WrongParameterException
-from preprocessing.patch_extraction.src.utils.masking import (
+from CellViT.preprocessing.patch_extraction import logger
+from CellViT.preprocessing.patch_extraction.src.utils.exceptions import WrongParameterException
+from CellViT.preprocessing.patch_extraction.src.utils.masking import (
     convert_polygons_to_mask,
     generate_tissue_mask,
 )
-from preprocessing.patch_extraction.src.utils.plotting import generate_polygon_overview
+from CellViT.preprocessing.patch_extraction.src.utils.plotting import generate_polygon_overview
 
 
 

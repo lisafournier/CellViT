@@ -21,7 +21,7 @@ from rasterio.mask import mask as rasterio_mask
 from shapely.affinity import scale
 from shapely.geometry import Polygon
 
-from preprocessing.patch_extraction import logger
+from CellViT.preprocessing.patch_extraction import logger
 
 
 def generate_tissue_mask(
