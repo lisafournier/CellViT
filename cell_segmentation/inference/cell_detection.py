@@ -240,6 +240,103 @@ class CellSegmentationInference:
             self.mixed_precision = self.run_conf["training"].get(
                 "mixed_precision", False
             )
+    
+    def process_patch(
+        self,
+        patch: np.ndarray,
+        metadata: dict,
+        patch_size: int = 224,
+        overlap: int = 64,
+        geojson: bool = False,
+    ) -> dict:
+        """Process a single patch
+
+        Args:
+            patch (np.ndarray): Patch image array
+            metadata (dict): Metadata for the patch
+            patch_size (int, optional): Patch-Size. Default to 1024.
+            overlap (int, optional): Overlap between patches. Defaults to 64.
+            geojson (bool, optional): If a geojson export should be performed. Defaults to False.
+
+        Returns:
+            dict: Dictionary containing cell detection results
+        """
+        self.logger.info(f"Processing patch on {self.device}")
+
+        patch_tensor = self.inference_transforms(patch).unsqueeze(0).to(self.device)
+
+        with torch.no_grad():
+            if self.mixed_precision:
+                with torch.autocast(device_type="cuda", dtype=torch.float16):
+                    predictions = self.model.forward(patch_tensor, retrieve_tokens=True)
+            else:
+                predictions = self.model.forward(patch_tensor, retrieve_tokens=True)
+
+            instance_types, tokens = self.get_cell_predictions_with_tokens(
+                predictions, magnification=metadata["magnification"]
+            )
+
+        cell_dict_patch = []
+        cell_dict_detection = []
+
+        x_global = int(
+            metadata["row"] * patch_size * metadata["downsampling"]
+            - (metadata["row"] + 0.5) * overlap
+        )
+        y_global = int(
+            metadata["col"] * patch_size * metadata["downsampling"]
+            - (metadata["col"] + 0.5) * overlap
+        )
+
+        for cell in instance_types[0].values():
+            if cell["type"] == self.run_conf["dataset_config"]["nuclei_types"]["Background"]:
+                continue
+            offset_global = np.array([x_global, y_global])
+            centroid_global = cell["centroid"] + np.flip(offset_global)
+            contour_global = cell["contour"] + np.flip(offset_global)
+            bbox_global = cell["bbox"] + offset_global
+            cell_dict = {
+                "bbox": bbox_global.tolist(),
+                "centroid": centroid_global.tolist(),
+                "contour": contour_global.tolist(),
+                "type_prob": cell["type_prob"],
+                "type": cell["type"],
+                "patch_coordinates": [metadata["row"], metadata["col"]],
+                "cell_status": get_cell_position_marging(cell["bbox"], 1024, 64),
+                "offset_global": offset_global.tolist()
+            }
+            cell_detection = {
+                "bbox": bbox_global.tolist(),
+                "centroid": centroid_global.tolist(),
+                "type": cell["type"],
+            }
+            if np.max(cell["bbox"]) == 1024 or np.min(cell["bbox"]) == 0:
+                position = get_cell_position(cell["bbox"], 1024)
+                cell_dict["edge_position"] = True
+                cell_dict["edge_information"] = {}
+                cell_dict["edge_information"]["position"] = position
+                cell_dict["edge_information"]["edge_patches"] = get_edge_patch(
+                    position, metadata["row"], metadata["col"]
+                )
+            else:
+                cell_dict["edge_position"] = False
+
+            cell_dict_patch.append(cell_dict)
+            cell_dict_detection.append(cell_detection)
+
+        result = {
+            "patch_metadata": metadata,
+            "type_map": self.run_conf["dataset_config"]["nuclei_types"],
+            "cells": cell_dict_patch,
+            "cell_detection": cell_dict_detection,
+        }
+
+        if geojson:
+            self.logger.info("Converting patch segmentation to geojson")
+            geojson_list = self.convert_geojson(cell_dict_patch, True)
+            result["geojson"] = geojson_list
+
+        return result
 
     def process_wsi(
         self,
@@ -261,7 +358,7 @@ class CellSegmentationInference:
             batch_size (int, optional): Batch-size for inference. Defaults to 8.
             geosjon (bool, optional): If a geojson export should be performed. Defaults to False.
         """
-        self.logger.info(f"Processing WSI: {wsi.name}")
+        self.logger.info(f"Processing WSI: {wsi.name} on {self.device}")
 
         wsi_inference_dataset = PatchedWSIInference(
             wsi, transform=self.inference_transforms
@@ -418,7 +515,7 @@ class CellSegmentationInference:
                         # pytorch 
                         memory_usage = memory_usage + (cell_token.nelement() * cell_token.element_size())/(1024*1024) + centroid_global.nbytes/(1024*1024) + contour_global.nbytes/(1024*1024)
 
-                    pbar.set_postfix(Cells=cell_count, Memory=f"{memory_usage:.2f} MB")
+                    pbar.set_postfix(Cells=cell_count, Memory=f"{memory_usage:.2f} MB", GPU=self.device)
 
         # post processing
         self.logger.info(f"Detected cells before cleaning: {len(cell_dict_wsi)}")

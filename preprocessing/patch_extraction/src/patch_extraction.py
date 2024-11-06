@@ -28,17 +28,17 @@ from shapely.affinity import scale
 from shapely.geometry import Polygon
 from tqdm import tqdm
 
-from preprocessing.patch_extraction import logger
-from preprocessing.patch_extraction.src.cli import PreProcessingConfig
-from preprocessing.patch_extraction.src.storage import Storage
-from preprocessing.patch_extraction.src.utils.exceptions import (
+from CellViT.preprocessing.patch_extraction import logger
+from CellViT.preprocessing.patch_extraction.src.cli import PreProcessingConfig
+from CellViT.preprocessing.patch_extraction.src.storage import Storage
+from CellViT.preprocessing.patch_extraction.src.utils.exceptions import (
     UnalignedDataException,
     WrongParameterException,
 )
-from preprocessing.patch_extraction.src.utils.patch_dataset import (
+from CellViT.preprocessing.patch_extraction.src.utils.patch_dataset import (
     load_tissue_detection_dl,
 )
-from preprocessing.patch_extraction.src.utils.patch_util import (
+from CellViT.preprocessing.patch_extraction.src.utils.patch_util import (
     DeepZoomGeneratorOS,
     calculate_background_ratio,
     compute_interesting_patches,
@@ -54,7 +54,7 @@ from preprocessing.patch_extraction.src.utils.patch_util import (
     target_mag_to_downsample,
     target_mpp_to_downsample,
 )
-from utils.tools import end_timer, module_exists, start_timer
+from CellViT.utils.tools import end_timer, module_exists, start_timer
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -248,7 +248,7 @@ class PreProcessor(object):
             logger.info("Using CuCIM")
             from cucim import CuImage
 
-            from src.cucim_deepzoom import DeepZoomGeneratorCucim
+            from CellViT.preprocessing.patch_extraction.src.cucim_deepzoom import DeepZoomGeneratorCucim
 
             self.deepzoomgenerator = DeepZoomGeneratorCucim
             self.image_loader = CuImage
