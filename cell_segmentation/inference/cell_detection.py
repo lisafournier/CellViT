@@ -245,7 +245,7 @@ class CellSegmentationInference:
         self,
         patch: np.ndarray,
         metadata: dict,
-        patch_size: int = 224,
+        patch_size: int = 1024,
         overlap: int = 64,
         geojson: bool = False,
     ) -> dict:
@@ -337,6 +337,7 @@ class CellSegmentationInference:
             result["geojson"] = geojson_list
 
         return result
+
 
     def process_wsi(
         self,
